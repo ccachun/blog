@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://example.com/2024/06/06/java-random0toN/</loc>
+    <loc>https://ccachun.github.io/blog/2024/06/06/java-random0toN/</loc>
     
     <lastmod>2024-06-06</lastmod>
     
@@ -11,7 +11,7 @@
   </url>
   
   <url>
-    <loc>http://example.com/2024/06/05/markdown/</loc>
+    <loc>https://ccachun.github.io/blog/2024/06/05/markdown/</loc>
     
     <lastmod>2024-06-05</lastmod>
     
@@ -20,7 +20,7 @@
   </url>
   
   <url>
-    <loc>http://example.com/2024/06/05/math-formula-markdown/</loc>
+    <loc>https://ccachun.github.io/blog/2024/06/05/math-formula-markdown/</loc>
     
     <lastmod>2024-06-05</lastmod>
     
@@ -30,7 +30,7 @@
   
 
   <url>
-    <loc>http://example.com/</loc>
+    <loc>https://ccachun.github.io/blog</loc>
     <lastmod>2024-06-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -38,14 +38,14 @@
 
   
   <url>
-    <loc>http://example.com/tags/Java/</loc>
+    <loc>https://ccachun.github.io/blog/tags/Java/</loc>
     <lastmod>2024-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>http://example.com/tags/Markdown/</loc>
+    <loc>https://ccachun.github.io/blog/tags/Markdown/</loc>
     <lastmod>2024-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
