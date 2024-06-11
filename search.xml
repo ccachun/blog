@@ -1,149 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>配對問題 Stable marriage problem - Gale Shaplry Algorithm</title>
-    <url>/blog/2024/06/09/Gale-Shaplry-Algorithm/</url>
-    <content><![CDATA[<h2 id="更新中…………"><a href="#更新中…………" class="headerlink" title="更新中…………"></a>更新中…………</h2><h2 id="什麼是-Stable-Matching-Problem"><a href="#什麼是-Stable-Matching-Problem" class="headerlink" title="什麼是 Stable Matching Problem"></a>什麼是 Stable Matching Problem</h2><p>Perfect matching:<br>Stability:<br>Stable matching:<br>The stable matching problem:</p>
-<h2 id="Gale-Shapley-Algorithm-的配對規則"><a href="#Gale-Shapley-Algorithm-的配對規則" class="headerlink" title="Gale-Shapley Algorithm 的配對規則"></a>Gale-Shapley Algorithm 的配對規則</h2><h2 id="相關名詞定義"><a href="#相關名詞定義" class="headerlink" title="相關名詞定義"></a>相關名詞定義</h2><h2 id="Gale-Shapley-Algorithm-特色"><a href="#Gale-Shapley-Algorithm-特色" class="headerlink" title="Gale-Shapley Algorithm 特色"></a>Gale-Shapley Algorithm 特色</h2><ol>
-<li><p>具備正確性</p>
-<ul>
-<li>能終止的(Termination)：Gale-Shapley Algorithm 最多執行 <mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="2.345ex" height="1.912ex" role="img" focusable="false" viewBox="0 -833.9 1036.6 844.9"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="msup"><g data-mml-node="mi"><path data-c="1D45B" d="M21 287Q22 293 24 303T36 341T56 388T89 425T135 442Q171 442 195 424T225 390T231 369Q231 367 232 367L243 378Q304 442 382 442Q436 442 469 415T503 336T465 179T427 52Q427 26 444 26Q450 26 453 27Q482 32 505 65T540 145Q542 153 560 153Q580 153 580 145Q580 144 576 130Q568 101 554 73T508 17T439 -10Q392 -10 371 17T350 73Q350 92 386 193T423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 180T152 343Q153 348 153 366Q153 405 129 405Q91 405 66 305Q60 285 60 284Q58 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mn" transform="translate(633,363) scale(0.707)"><path data-c="32" d="M109 429Q82 429 66 447T50 491Q50 562 103 614T235 666Q326 666 387 610T449 465Q449 422 429 383T381 315T301 241Q265 210 201 149L142 93L218 92Q375 92 385 97Q392 99 409 186V189H449V186Q448 183 436 95T421 3V0H50V19V31Q50 38 56 46T86 81Q115 113 136 137Q145 147 170 174T204 211T233 244T261 278T284 308T305 340T320 369T333 401T340 431T343 464Q343 527 309 573T212 619Q179 619 154 602T119 569T109 550Q109 549 114 549Q132 549 151 535T170 489Q170 464 154 447T109 429Z"></path></g></g></g></g></svg></mjx-container> 次配對</li>
-<li>最佳配對(Perfection)：配對結束後，每個人都能結婚</li>
-<li>穩定配對(Stability)：配對結束後，每對都是穩定的</li>
-</ul>
-<p>其中 Perfection 和 Stability 在說明此程式產生的結果一定是 Stable matching 的</p>
-</li>
-<li><p>Gale-Shapley 演算法在設計的時候，是只能由男生主動向女生求婚，女生只能被動接受或拒絕，所以對男生來說是一個最佳的結果(Male-optimal)；而對女生來說則是一個相對悲觀的結果(female-pessimal)</p>
-<p>雖說具有 Male-optimal &amp; female-pessimal 的性質，但有些例子即使以男生主動進行配對結果，女生得到的結果卻比男生好</p>
-<p>所以這邊所指得 Male-optimal &amp; female-pessimal 是一種由設計概念上的性質，男生主動，所以佔據優勢，但最終結果好壞還是要看案例而定</p>
-</li>
-<li><p>不論由哪個男生主動開始進行求婚配對，最終所得到的配對結果都會是相同的 <em>(這裡所指的必須統一由男生主動，如果更改規則，由女生主動，就有機會出現不同配對結果)</em></p>
-<p>這表示任何人來寫這個程式，都會得到相同的結果，這是一個很棒的特性！</p>
-</li>
-</ol>
-<h2 id="Gale-Shapley-pseudocode"><a href="#Gale-Shapley-pseudocode" class="headerlink" title="Gale-Shapley pseudocode"></a>Gale-Shapley pseudocode</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Initially all m∈M and w∈W are free</span><br><span class="line">While there is a man m who is free and hasn’t proposed to</span><br><span class="line">every woman</span><br><span class="line">   Choose such a man m</span><br><span class="line">   Let w be the highest-ranked woman in m’s preference list</span><br><span class="line">       to whom m has not yet proposed</span><br><span class="line">   If w is free then</span><br><span class="line">       (m, w) become engaged</span><br><span class="line">   Else w is currently engaged to m</span><br><span class="line">       If w prefers m to m then</span><br><span class="line">           m remains free</span><br><span class="line">       Else w prefers m to m</span><br><span class="line">           (m, w) become engaged</span><br><span class="line">           m becomes free</span><br><span class="line">       Endif</span><br><span class="line">   Endif</span><br><span class="line">Endwhile</span><br><span class="line">Return the set S of engaged pairs</span><br></pre></td></tr></table></figure>
-
-<p>pseudocode 參考書籍：<br><em>Jon Kleinberg, Éva Tardos - Algorithm Design-Pearson (2006)</em></p>
-<h2 id="Gale-Shaplry-Algorithm-最多執行幾次：證明此程式是能跑完的-Termination"><a href="#Gale-Shaplry-Algorithm-最多執行幾次：證明此程式是能跑完的-Termination" class="headerlink" title="Gale Shaplry Algorithm 最多執行幾次：證明此程式是能跑完的(Termination)"></a>Gale Shaplry Algorithm 最多執行幾次：證明此程式是能跑完的(Termination)</h2><p><strong>關鍵思考：Gale Shaplry 演算法中每個迭代(iteration) 一定存在一個男生向一個女生求婚(proposed)</strong></p>
-<p>最多執行幾次，也就是討論最差的情況下(worse case) 最多會執行幾次配對，才能達到穩定匹配(Stable matching)</p>
-<p>假設有 n 個男生、n 個女生進行配對，且配對的規則依照上述 Gale Shaplry 的方法</p>
-<p>從<strong>男生最多需要求婚幾次的角度切入</strong>，每個男生最多可能向 n 個女人求婚，且是從最喜歡的女生開始求婚，如果被拒絕再換下一個，最差的情況下(worse case)是被拒絕 n - 1 次，然後向最後一位女生求婚，全部總共有 n 個男生，所以最多會進行 <mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.186ex;" xmlns="http://www.w3.org/2000/svg" width="10.843ex" height="2.072ex" role="img" focusable="false" viewBox="0 -833.9 4792.6 915.9"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><path data-c="1D45B" d="M21 287Q22 293 24 303T36 341T56 388T89 425T135 442Q171 442 195 424T225 390T231 369Q231 367 232 367L243 378Q304 442 382 442Q436 442 469 415T503 336T465 179T427 52Q427 26 444 26Q450 26 453 27Q482 32 505 65T540 145Q542 153 560 153Q580 153 580 145Q580 144 576 130Q568 101 554 73T508 17T439 -10Q392 -10 371 17T350 73Q350 92 386 193T423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 180T152 343Q153 348 153 366Q153 405 129 405Q91 405 66 305Q60 285 60 284Q58 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mo" transform="translate(822.2,0)"><path data-c="D7" d="M630 29Q630 9 609 9Q604 9 587 25T493 118L389 222L284 117Q178 13 175 11Q171 9 168 9Q160 9 154 15T147 29Q147 36 161 51T255 146L359 250L255 354Q174 435 161 449T147 471Q147 480 153 485T168 490Q173 490 175 489Q178 487 284 383L389 278L493 382Q570 459 587 475T609 491Q630 491 630 471Q630 464 620 453T522 355L418 250L522 145Q606 61 618 48T630 29Z"></path></g><g data-mml-node="mi" transform="translate(1822.4,0)"><path data-c="1D45B" d="M21 287Q22 293 24 303T36 341T56 388T89 425T135 442Q171 442 195 424T225 390T231 369Q231 367 232 367L243 378Q304 442 382 442Q436 442 469 415T503 336T465 179T427 52Q427 26 444 26Q450 26 453 27Q482 32 505 65T540 145Q542 153 560 153Q580 153 580 145Q580 144 576 130Q568 101 554 73T508 17T439 -10Q392 -10 371 17T350 73Q350 92 386 193T423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 180T152 343Q153 348 153 366Q153 405 129 405Q91 405 66 305Q60 285 60 284Q58 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mo" transform="translate(2700.2,0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="msup" transform="translate(3756,0)"><g data-mml-node="mi"><path data-c="1D45B" d="M21 287Q22 293 24 303T36 341T56 388T89 425T135 442Q171 442 195 424T225 390T231 369Q231 367 232 367L243 378Q304 442 382 442Q436 442 469 415T503 336T465 179T427 52Q427 26 444 26Q450 26 453 27Q482 32 505 65T540 145Q542 153 560 153Q580 153 580 145Q580 144 576 130Q568 101 554 73T508 17T439 -10Q392 -10 371 17T350 73Q350 92 386 193T423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 180T152 343Q153 348 153 366Q153 405 129 405Q91 405 66 305Q60 285 60 284Q58 278 41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mn" transform="translate(633,363) scale(0.707)"><path data-c="32" d="M109 429Q82 429 66 447T50 491Q50 562 103 614T235 666Q326 666 387 610T449 465Q449 422 429 383T381 315T301 241Q265 210 201 149L142 93L218 92Q375 92 385 97Q392 99 409 186V189H449V186Q448 183 436 95T421 3V0H50V19V31Q50 38 56 46T86 81Q115 113 136 137Q145 147 170 174T204 211T233 244T261 278T284 308T305 340T320 369T333 401T340 431T343 464Q343 527 309 573T212 619Q179 619 154 602T119 569T109 550Q109 549 114 549Q132 549 151 535T170 489Q170 464 154 447T109 429Z"></path></g></g></g></g></svg></mjx-container> 次配對</p>
-<h2 id="Gale-Shaplry-Algorithm-的正確性證明"><a href="#Gale-Shaplry-Algorithm-的正確性證明" class="headerlink" title="Gale Shaplry Algorithm 的正確性證明"></a>Gale Shaplry Algorithm 的正確性證明</h2><p>男生的角度：以男生最大利益來說，他會從最喜歡的女生開始求婚，如果被拒絕就換向第二喜歡的女生求婚 … 以此類推直到被接受為止</p>
-<p>女生的角度：只要有男生向她求婚，假如尚未訂婚(engaged: null)那就先接受再說，接下來只要有更好的男生向她求婚，她也會立即更換訂婚對象，而且女生只要進入 engaged 的狀態，就不會再恢復單身，頂多就是遇到更喜歡的男生就更換，直到配對結束為止</p>
-<p><strong>關鍵思考：男生是從最喜歡的開始求婚，被拒絕後換下一個，直到最不喜歡的；相反的女生是從最不喜歡的男生開始，遇到更喜歡的就更換</strong></p>
-<p>在<strong>穩定配對問題（stable matching problem）</strong> 或稱 <strong>stable marriage problem</strong>中，我們可以分成兩件事情：</p>
-<ol>
-<li>它一定要是 <strong>perfect matching</strong>: 表示這個程式跑完，每個男生都會配到一個女生；當然每個女生也都會配到一個男生</li>
-<li>它要是 <strong>Stable matching</strong>: 配對完之後，不會有任何一對男女，喜歡對方更勝於自己的配偶</li>
-</ol>
-<p>如果要證明 Gale Shaplry Algorithm 的正確性，必須證明上述的兩件事情</p>
-<h3 id="證明-perfect-matching"><a href="#證明-perfect-matching" class="headerlink" title="證明 perfect matching"></a>證明 perfect matching</h3><p><strong>關鍵思考：用反證法(Proof by Contradiction)，如果結果不是 perfect matching 表示一定存在至少一個男生沒有配到對象</strong></p>
-<p><strong>證明技巧：我們證明的是 Gale Shaplry Algorithm 這個程式，所以證明過程中，一定是針對此程式當中的條件、特性或內容來做推論，不要扯到其他事情</strong></p>
-<p>假設，Gale Shaplry Algorithm 結束時，存在一個男生是單身的</p>
-<p>在 pseudocode 中 while loop 的條件式(condition)是</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">there is a man m who is free and hasn’t proposed to every woman</span><br></pre></td></tr></table></figure>
-
-<p>如果 while loop 會結束，一定是此條件不成立時</p>
-<p>而在 <strong>“程式結束時，存在一個男生是單身的”</strong> 這樣的條件下，程式還能終止，那就違反了 while loop 的的條件式 condition</p>
-<p>在 while loop 的 condition 中，只要還存在一個男生是單身，那迴圈就會繼續迭代下去</p>
-<p>另外，在程式結束時，存在一個男生是單身的(engaged: null)；表示也一定存在一個女生是單身的(engaged: null)</p>
-<p>而在上述 “女生的角度” 中提到，女生只要進入 engaged 的狀態 (engaged: 某個男生)，就不會再恢復單身，而現在根據假設推得，存在的一個女生是單身的(engaged: null)，表示從頭到尾，都沒有男生跟她求婚過，她才會一直保持單身狀態 <em>(Note: 如果女生是單身狀態，只要有男生跟她求婚，一定是先接受再說)</em></p>
-<p>如果從來都沒有男生向她求婚過，也表示假設中的單身男生，一定也不曾跟她求婚過，這就違反了 while loop 的條件式(condition)，出現矛盾！</p>
-<p>因此，我們就證得程式結束時，每個男生都會配到一個女生，即 perfect matching</p>
-<h3 id="證明-Stability-程式跑完後的配對結婚是穩定配對"><a href="#證明-Stability-程式跑完後的配對結婚是穩定配對" class="headerlink" title="證明 Stability: 程式跑完後的配對結婚是穩定配對"></a>證明 Stability: 程式跑完後的配對結婚是穩定配對</h3><p><strong>穩定配對(Stable matching)</strong>: 配對完之後，不會有任何一對男女，喜歡對方更勝於自己的配偶</p>
-<h2 id="Gale-Shaplry-Algorithm-是否有唯一性"><a href="#Gale-Shaplry-Algorithm-是否有唯一性" class="headerlink" title="Gale Shaplry Algorithm 是否有唯一性"></a>Gale Shaplry Algorithm 是否有唯一性</h2><p>如果要證明不具唯一性，其實只要列舉出一個例子，在所有條件相同的情況下，能出現大於一種的穩定配對(stable matching)，就能證明 stable matching 不具唯一性</p>
-<p>下方的例子是三個男生、三個女生的配對，分別以<strong>男生主動</strong> (只有男生能求婚，女生只能接受或拒絕) 和 <strong>女生主動</strong> (只有女生能求婚，男生只能接受或拒絕) 來看看最終配對結果是否相同呢？</p>
-<p>男生的喜好排序 (男生代號：X, Y, Z)：</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>1st</th>
-<th>2nd</th>
-<th>3rd</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>X</td>
-<td>A</td>
-<td>B</td>
-<td>C</td>
-</tr>
-<tr>
-<td>Y</td>
-<td>B</td>
-<td>A</td>
-<td>C</td>
-</tr>
-<tr>
-<td>Z</td>
-<td>A</td>
-<td>B</td>
-<td>C</td>
-</tr>
-</tbody></table>
-<p>女生的喜好排序 (女生代號：A, B, C):</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>1st</th>
-<th>2nd</th>
-<th>3rd</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>A</td>
-<td>Y</td>
-<td>X</td>
-<td>Z</td>
-</tr>
-<tr>
-<td>B</td>
-<td>X</td>
-<td>Y</td>
-<td>Z</td>
-</tr>
-<tr>
-<td>C</td>
-<td>X</td>
-<td>Y</td>
-<td>Z</td>
-</tr>
-</tbody></table>
-<p>男生主動的配對結果：(X, A), (Y, B), (Z, C)</p>
-<p>女生主動的配對結果：(A, Y), (B, X), (C, Z)</p>
-<p>我們可以發現，分別由男生主動和女生主動來進行配對，會出現兩種不同的配對情形，而且都是穩定配對(stable matching)</p>
-<p>雖然有些例子，存在著不管從男生主動，還是從女生主動，配對結果都是一樣的案例，也同時也存在會出現不同配對情況的案例，這就能說明 stable matching 並不具備唯一性</p>
-]]></content>
-      <tags>
-        <tag>演算法</tag>
-        <tag>Algorithm</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Java 筆記：如何取得 0 ~ N 之間的隨機數字</title>
-    <url>/blog/2024/06/06/java-random0toN/</url>
-    <content><![CDATA[<h2 id="使用-java-util-Random-和-nextInt-方法"><a href="#使用-java-util-Random-和-nextInt-方法" class="headerlink" title="使用 java.util.Random 和 nextInt() 方法"></a>使用 java.util.Random 和 nextInt() 方法</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">java.util.Random.nextInt()</span><br></pre></td></tr></table></figure>
-
-<p>不過，要先提醒一件事，這邊產生的隨機，其實是一種偽隨機(pseudo random)，也就是說並非真正的隨機數，但特性近似於隨機</p>
-<p>偽亂數是使用一個確定性的演算法計算出來的近似是隨機的數序，因此偽亂數實際上並不隨機 (可參考 <a href="https://zh.wikipedia.org/zh-tw/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%80%A7">偽隨機性</a> )</p>
-<p>雖然程式語言內建的隨機函數，並非真正隨機，但一般使用上並沒有太大的問題，除非有特定需求，如應用於密碼學</p>
-<p><code>nextInt()</code> 的使用方式：<br>Returns a pseudorandom, uniformly distributed int value between 0 (inclusive) and the specified value (exclusive)</p>
-<p>比如： <code>.nextInt(100)</code><br>就會隨機產生 0 ~ 99 的隨機正數，包含 0，不包含 100</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">random0toN</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">random0toN</span> <span class="params">(<span class="type">int</span> n)</span> &#123;</span><br><span class="line">        <span class="type">Random</span> <span class="variable">r</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Random</span>();</span><br><span class="line">        <span class="comment">// 0 (inclusive), n (exclusive)</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">result</span> <span class="operator">=</span> r.nextInt(n);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        System.out.println(random0toN(<span class="number">10</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 輸出：</span></span><br><span class="line"><span class="comment">// 6</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="如果不想出現-0-呢？"><a href="#如果不想出現-0-呢？" class="headerlink" title="如果不想出現 0 呢？"></a>如果不想出現 0 呢？</h2><p>比如，隨機生成 1 ~ 100 之間的數字<br>這邊可以使用一個小技巧，設定一個最小值 <code>min = 1</code><br>然後寫成 <code>r.nextInt(max - min) + min</code></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Random1to100</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">min</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">max</span> <span class="operator">=</span> <span class="number">100</span>;</span><br><span class="line">        <span class="type">Random</span> <span class="variable">r</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Random</span>();</span><br><span class="line">        <span class="type">int</span> <span class="variable">result</span> <span class="operator">=</span> r.nextInt(max - min) + min;</span><br><span class="line">        System.out.println(result);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="應用：產生一個放有-10-個隨機數字的-Array"><a href="#應用：產生一個放有-10-個隨機數字的-Array" class="headerlink" title="應用：產生一個放有 10 個隨機數字的 Array"></a>應用：產生一個放有 10 個隨機數字的 Array</h2><p>產生一個放有 10 個隨機數字的 Array，且數字在 0 ~ 100 之間，包含 0，不包含 100</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">random0toN</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">random0toN</span> <span class="params">(<span class="type">int</span> n)</span> &#123;</span><br><span class="line">        <span class="type">Random</span> <span class="variable">r</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Random</span>();</span><br><span class="line">        <span class="comment">// 0 (inclusive), n (exclusive)</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">result</span> <span class="operator">=</span> r.nextInt(n);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">int</span>[] arr = <span class="keyword">new</span> <span class="title class_">int</span>[<span class="number">10</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; arr.length; i++) &#123;</span><br><span class="line">            <span class="comment">// 數字在 0 ~ 100 之間</span></span><br><span class="line">           arr[i] = random0toN(<span class="number">100</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(Arrays.toString(arr));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 輸出：</span></span><br><span class="line"><span class="comment">// [97, 23, 6, 89, 81, 23, 2, 40, 94, 32]</span></span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>Java</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>如何使用 Markdown 語法？</title>
     <url>/blog/2024/06/05/markdown/</url>
     <content><![CDATA[<h4 id="標題-H1-H6"><a href="#標題-H1-H6" class="headerlink" title="標題 H1 ~ H6"></a>標題 H1 ~ H6</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Heading 1</span><br><span class="line"></span><br><span class="line">## Heading 2</span><br><span class="line"></span><br><span class="line">### Heading 3</span><br><span class="line"></span><br><span class="line">#### Heading 4</span><br><span class="line"></span><br><span class="line">##### Heading 5</span><br><span class="line"></span><br><span class="line">###### Heading 6</span><br></pre></td></tr></table></figure>
@@ -321,6 +178,28 @@
 ]]></content>
       <tags>
         <tag>Markdown</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java 筆記：如何取得 0 ~ N 之間的隨機數字</title>
+    <url>/blog/2024/06/06/java-random0toN/</url>
+    <content><![CDATA[<h2 id="使用-java-util-Random-和-nextInt-方法"><a href="#使用-java-util-Random-和-nextInt-方法" class="headerlink" title="使用 java.util.Random 和 nextInt() 方法"></a>使用 java.util.Random 和 nextInt() 方法</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">java.util.Random.nextInt()</span><br></pre></td></tr></table></figure>
+
+<p>不過，要先提醒一件事，這邊產生的隨機，其實是一種偽隨機(pseudo random)，也就是說並非真正的隨機數，但特性近似於隨機</p>
+<p>偽亂數是使用一個確定性的演算法計算出來的近似是隨機的數序，因此偽亂數實際上並不隨機 (可參考 <a href="https://zh.wikipedia.org/zh-tw/%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%80%A7">偽隨機性</a> )</p>
+<p>雖然程式語言內建的隨機函數，並非真正隨機，但一般使用上並沒有太大的問題，除非有特定需求，如應用於密碼學</p>
+<p><code>nextInt()</code> 的使用方式：<br>Returns a pseudorandom, uniformly distributed int value between 0 (inclusive) and the specified value (exclusive)</p>
+<p>比如： <code>.nextInt(100)</code><br>就會隨機產生 0 ~ 99 的隨機正數，包含 0，不包含 100</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">random0toN</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">random0toN</span> <span class="params">(<span class="type">int</span> n)</span> &#123;</span><br><span class="line">        <span class="type">Random</span> <span class="variable">r</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Random</span>();</span><br><span class="line">        <span class="comment">// 0 (inclusive), n (exclusive)</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">result</span> <span class="operator">=</span> r.nextInt(n);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        System.out.println(random0toN(<span class="number">10</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 輸出：</span></span><br><span class="line"><span class="comment">// 6</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="如果不想出現-0-呢？"><a href="#如果不想出現-0-呢？" class="headerlink" title="如果不想出現 0 呢？"></a>如果不想出現 0 呢？</h2><p>比如，隨機生成 1 ~ 100 之間的數字<br>這邊可以使用一個小技巧，設定一個最小值 <code>min = 1</code><br>然後寫成 <code>r.nextInt(max - min) + min</code></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Random1to100</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">min</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">max</span> <span class="operator">=</span> <span class="number">100</span>;</span><br><span class="line">        <span class="type">Random</span> <span class="variable">r</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Random</span>();</span><br><span class="line">        <span class="type">int</span> <span class="variable">result</span> <span class="operator">=</span> r.nextInt(max - min) + min;</span><br><span class="line">        System.out.println(result);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="應用：產生一個放有-10-個隨機數字的-Array"><a href="#應用：產生一個放有-10-個隨機數字的-Array" class="headerlink" title="應用：產生一個放有 10 個隨機數字的 Array"></a>應用：產生一個放有 10 個隨機數字的 Array</h2><p>產生一個放有 10 個隨機數字的 Array，且數字在 0 ~ 100 之間，包含 0，不包含 100</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">random0toN</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">random0toN</span> <span class="params">(<span class="type">int</span> n)</span> &#123;</span><br><span class="line">        <span class="type">Random</span> <span class="variable">r</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Random</span>();</span><br><span class="line">        <span class="comment">// 0 (inclusive), n (exclusive)</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">result</span> <span class="operator">=</span> r.nextInt(n);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">int</span>[] arr = <span class="keyword">new</span> <span class="title class_">int</span>[<span class="number">10</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; arr.length; i++) &#123;</span><br><span class="line">            <span class="comment">// 數字在 0 ~ 100 之間</span></span><br><span class="line">           arr[i] = random0toN(<span class="number">100</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(Arrays.toString(arr));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 輸出：</span></span><br><span class="line"><span class="comment">// [97, 23, 6, 89, 81, 23, 2, 40, 94, 32]</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>Java</tag>
       </tags>
   </entry>
 </search>
