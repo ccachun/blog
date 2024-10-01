@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.2.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic%7CCactus+Classical+Serif:300,300italic,400,400italic,700,700italic%7C微軟正黑體:300,300italic,400,400italic,700,700italic%7CJetBrains+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha256-XOqroi11tY4EFQMR9ZYwZWKj5ZXiftSx36RRuC3anlA=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"ccachun.github.io","root":"/blog/","images":"/blog/images","scheme":"Muse","darkmode":"ture","version":"8.20.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜尋...","empty":"我們無法找到任何有關 ${query} 的搜索結果","hits_time":"${hits} 找到 ${time} 個結果","hits":"找到 ${hits} 個結果"},"path":"/blog/search.xml","localsearch":{"enable":"ture","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/blog/js/config.js"></script>
+
+    <meta name="description" content="本篇內容將以 Flask + SQLite 創建一個簡單的住戶管理 API，並以 RESTful API 風格來撰寫基本的 CRUD 功能，分別為創建住戶資料(Create)、讀取所有住戶資料(Read)、讀取單一住戶資料(Read)、更新住戶資料(Update)、刪除住戶資料(Delete)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 筆記：Flask + SQLite 後端 RESTful API 設計 (I)">
+<meta property="og:url" content="https://ccachun.github.io/blog/2024/09/30/Python-Flask-SQLite-API/index.html">
+<meta property="og:site_name" content="小瑋的科學筆記">
+<meta property="og:description" content="本篇內容將以 Flask + SQLite 創建一個簡單的住戶管理 API，並以 RESTful API 風格來撰寫基本的 CRUD 功能，分別為創建住戶資料(Create)、讀取所有住戶資料(Read)、讀取單一住戶資料(Read)、更新住戶資料(Update)、刪除住戶資料(Delete)">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/08.png?alt=media&token=6805c9ab-c5d0-4c85-9a68-d2c838a22084">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/00.png?alt=media&token=b61f59ae-2cb9-4fb5-82f4-e5ead9299c97">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/01.png?alt=media&token=6f712e52-4140-45d2-8b52-a5259bbea18a">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/02.png?alt=media&token=cdb9d4c9-7cd9-4bd0-ad21-613634ec78d8">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/03.png?alt=media&token=bf13f857-7bac-4b57-9fcb-3ef7f7a86580">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/04.png?alt=media&token=dcc855cd-f9e9-49e0-914e-b9fa89af53b3">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/05.png?alt=media&token=6d509ff1-def0-4ad6-8a29-6d401d9e9299">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/06.png?alt=media&token=9f420d2b-e142-4a6c-b4ac-703674d9ef47">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/07.png?alt=media&token=94aef08e-4eef-4cef-80dc-d6cca00e18d3">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/08.png?alt=media&token=6805c9ab-c5d0-4c85-9a68-d2c838a22084">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/09.png?alt=media&token=5976f80b-6800-4ea8-b837-50d804ba0bf0">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/10.png?alt=media&token=4faa61f3-1ffa-4e61-817d-4776e30e77e2">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/11.png?alt=media&token=cc3b4285-5b35-418a-99b9-b0ffe8850080">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/12.png?alt=media&token=56484f1d-4ded-4560-b85c-4eb0fc320557">
+<meta property="article:published_time" content="2024-09-30T11:45:56.000Z">
+<meta property="article:modified_time" content="2024-10-01T13:44:46.612Z">
+<meta property="article:author" content="小瑋">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/08.png?alt=media&token=6805c9ab-c5d0-4c85-9a68-d2c838a22084">
+
+
+<link rel="canonical" href="https://ccachun.github.io/blog/2024/09/30/Python-Flask-SQLite-API/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-TW","comments":true,"permalink":"https://ccachun.github.io/blog/2024/09/30/Python-Flask-SQLite-API/","path":"2024/09/30/Python-Flask-SQLite-API/","title":"Python 筆記：Flask + SQLite 後端 RESTful API 設計 (I)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Python 筆記：Flask + SQLite 後端 RESTful API 設計 (I) | 小瑋的科學筆記</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JCDS670CTJ"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"G-JCDS670CTJ","only_pageview":false,"measure_protocol_api_secret":null}</script>
+  <script src="/blog/js/third-party/analytics/google-analytics.js"></script>
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切換導航欄" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">小瑋的科學筆記</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">數學、演算法、資料結構、天文攝影....</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜尋" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首頁</a></li><li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>標籤</a></li><li class="menu-item menu-item-categories"><a href="/blog/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分類</a></li><li class="menu-item menu-item-sitemap"><a href="/blog/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>網站地圖</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜尋
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜尋..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目錄
+        </li>
+        <li class="sidebar-nav-overview">
+          本站概要
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%96%B1%E8%AE%80%E6%9C%AC%E7%AF%87%E6%96%87%E7%AB%A0%E5%89%8D%E9%9C%80%E8%A6%81%E7%9A%84%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AD%98"><span class="nav-number">1.</span> <span class="nav-text">閱讀本篇文章前需要的背景知識</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%BA%96%E5%82%99%E5%B7%A5%E5%85%B7%EF%BC%8F%E8%BB%9F%E9%AB%94"><span class="nav-number">2.</span> <span class="nav-text">準備工具／軟體</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E9%BA%BC%E6%98%AF-REST-%E9%A2%A8%E6%A0%BC"><span class="nav-number">3.</span> <span class="nav-text">什麼是 REST 風格</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%BD%BF%E7%94%A8-http-method-%E8%A1%A8%E7%A4%BA%E5%8B%95%E4%BD%9C"><span class="nav-number">3.1.</span> <span class="nav-text">1. 使用 http method 表示動作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%BD%BF%E7%94%A8-url-%E8%B7%AF%E5%BE%91%E6%8F%8F%E8%BF%B0%E8%B3%87%E6%BA%90%E4%B9%8B%E9%96%93%E7%9A%84%E9%9A%8E%E5%B1%A4%E9%97%9C%E4%BF%82"><span class="nav-number">3.2.</span> <span class="nav-text">2. 使用 url 路徑描述資源之間的階層關係</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Response-Body-%E8%BF%94%E5%9B%9E-JSON-%E6%88%96%E6%98%AF-XML-%E6%A0%BC%E5%BC%8F"><span class="nav-number">3.3.</span> <span class="nav-text">3. Response Body 返回 JSON 或是 XML 格式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BB%BA%E7%AB%8B-app-py"><span class="nav-number">4.</span> <span class="nav-text">建立 app.py</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%88%E5%8C%AF%E5%85%A5%E6%89%80%E9%9C%80%E8%A6%81%E7%9A%84-module"><span class="nav-number">5.</span> <span class="nav-text">先匯入所需要的 module</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B0%87-Flask-%E5%AF%A6%E4%BE%8B%E5%8C%96-Instance"><span class="nav-number">6.</span> <span class="nav-text">將 Flask 實例化 (Instance)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A3%9C%E5%85%85%E8%AA%AA%E6%98%8E"><span class="nav-number">6.1.</span> <span class="nav-text">補充說明</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E8%B3%87%E6%96%99%E5%BA%AB-Initialize-database"><span class="nav-number">7.</span> <span class="nav-text">初始化資料庫(Initialize database)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%B5%E5%BB%BA%E4%BD%8F%E6%88%B6%E8%B3%87%E6%96%99-Create"><span class="nav-number">8.</span> <span class="nav-text">創建住戶資料 (Create)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8%E6%9C%80%E5%BE%8C%E4%B8%80%E8%A1%8C%E5%8A%A0%E4%B8%8A-app-run-debug-True"><span class="nav-number">9.</span> <span class="nav-text">在最後一行加上 app.run(debug&#x3D;True)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%B7%E8%A1%8C-app-py"><span class="nav-number">10.</span> <span class="nav-text">執行 app.py</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8-API-Tester-%E6%B8%AC%E8%A9%A6%E5%89%B5%E5%BB%BA%E4%BD%8F%E6%88%B6%E7%9A%84-route"><span class="nav-number">11.</span> <span class="nav-text">在 API Tester 測試創建住戶的 route</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Http-Request-%E9%8C%AF%E8%AA%A4%E8%AB%8B%E6%B1%82%E6%B8%AC%E8%A9%A6"><span class="nav-number">12.</span> <span class="nav-text">Http Request 錯誤請求測試</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8%E6%96%B0%E5%A2%9E%E5%85%A9%E7%AD%86%E4%BD%8F%E6%88%B6%E8%B3%87%E8%A8%8A"><span class="nav-number">13.</span> <span class="nav-text">在新增兩筆住戶資訊</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%80%E5%8F%96%E6%89%80%E6%9C%89%E4%BD%8F%E6%88%B6%E8%B3%87%E8%A8%8A-Read"><span class="nav-number">14.</span> <span class="nav-text">讀取所有住戶資訊 (Read)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A3%9C%E5%85%85%E8%AA%AA%E6%98%8E-1"><span class="nav-number">14.1.</span> <span class="nav-text">補充說明</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8-API-Tester-%E6%B8%AC%E8%A9%A6%E6%9F%A5%E8%A9%A2%E6%89%80%E6%9C%89%E4%BD%8F%E6%88%B6%E7%9A%84-route"><span class="nav-number">15.</span> <span class="nav-text">在 API Tester 測試查詢所有住戶的 route</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%80%E5%8F%96%E5%96%AE%E4%B8%80%E4%BD%8F%E6%88%B6%E8%B3%87%E8%A8%8A-Read"><span class="nav-number">16.</span> <span class="nav-text">讀取單一住戶資訊 (Read)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8-API-Tester-%E6%B8%AC%E8%A9%A6%E5%8F%96%E5%BE%97%E5%96%AE%E4%B8%80%E4%BD%8F%E6%88%B6%E7%9A%84-route"><span class="nav-number">17.</span> <span class="nav-text">在 API Tester 測試取得單一住戶的 route</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0%E4%BD%8F%E6%88%B6%E8%B3%87%E8%A8%8A-Update"><span class="nav-number">18.</span> <span class="nav-text">更新住戶資訊 (Update)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8-API-Tester-%E6%B8%AC%E8%A9%A6%E6%9B%B4%E6%96%B0%E4%BD%8F%E6%88%B6%E7%9A%84-route"><span class="nav-number">19.</span> <span class="nav-text">在 API Tester 測試更新住戶的 route</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8-DB-Brower-%E6%9F%A5%E7%9C%8B%E6%9B%B4%E6%96%B0%E7%B5%90%E6%9E%9C"><span class="nav-number">20.</span> <span class="nav-text">在 DB Brower 查看更新結果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%AA%E9%99%A4%E4%BD%8F%E6%88%B6%E8%B3%87%E8%A8%8A"><span class="nav-number">21.</span> <span class="nav-text">刪除住戶資訊</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#all_code"><span class="nav-number">22.</span> <span class="nav-text">全部的程式碼</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%AF%E5%84%AA%E5%8C%96%E7%9A%84%E9%83%A8%E5%88%86"><span class="nav-number">23.</span> <span class="nav-text">可優化的部分</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="小瑋"
+      src="/blog/images/head-pic.jpg">
+  <p class="site-author-name" itemprop="name">小瑋</p>
+  <div class="site-description" itemprop="description">這裡是一個分享數學、演算法、資料結構與天文攝影的部落格</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/blog/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/blog/tags/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">標籤</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ccachun" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ccachun" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@infinity6617" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@infinity6617" rel="noopener me" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-TW">
+    <link itemprop="mainEntityOfPage" href="https://ccachun.github.io/blog/2024/09/30/Python-Flask-SQLite-API/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/head-pic.jpg">
+      <meta itemprop="name" content="小瑋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小瑋的科學筆記">
+      <meta itemprop="description" content="這裡是一個分享數學、演算法、資料結構與天文攝影的部落格">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Python 筆記：Flask + SQLite 後端 RESTful API 設計 (I) | 小瑋的科學筆記">
+      <meta itemprop="description" content="本篇內容將以 Flask + SQLite 創建一個簡單的住戶管理 API，並以 RESTful API 風格來撰寫基本的 CRUD 功能，分別為創建住戶資料(Create)、讀取所有住戶資料(Read)、讀取單一住戶資料(Read)、更新住戶資料(Update)、刪除住戶資料(Delete)">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Python 筆記：Flask + SQLite 後端 RESTful API 設計 (I)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">發表於</span>
+
+      <time title="創建時間：2024-09-30 19:45:56" itemprop="dateCreated datePublished" datetime="2024-09-30T19:45:56+08:00">2024-09-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新於</span>
+      <time title="修改時間：2024-10-01 21:44:46" itemprop="dateModified" datetime="2024-10-01T21:44:46+08:00">2024-10-01</time>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">本篇內容將以 Flask + SQLite 創建一個簡單的住戶管理 API，並以 RESTful API 風格來撰寫基本的 CRUD 功能，分別為創建住戶資料(Create)、讀取所有住戶資料(Read)、讀取單一住戶資料(Read)、更新住戶資料(Update)、刪除住戶資料(Delete)</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="閱讀本篇文章前需要的背景知識"><a href="#閱讀本篇文章前需要的背景知識" class="headerlink" title="閱讀本篇文章前需要的背景知識"></a>閱讀本篇文章前需要的背景知識</h1><ul>
+<li>基礎 <code>SQL</code> 語法：<code>SELECT</code>、<code>INSERT</code>、<code>UPDATE</code>、<code>DELETE</code></li>
+<li>Python 的基礎：資料型態、<code>if...else</code>、 <code>for loop</code>、<code>function</code>、<code>import module</code></li>
+<li>例外處理：<code>try</code>、<code>except</code>、<code>finally</code></li>
+<li>常用的 <code>Http request</code> 的規範：<code>GET</code>、<code>POST</code>、<code>PUT</code>、<code>DELETE</code></li>
+<li>常見的 HTTP 狀態碼：可參考 <a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-tw/HTTP%E7%8A%B6%E6%80%81%E7%A0%81">wiki HTTP 狀態碼</a></li>
+</ul>
+<p>教學內容會以<strong>逐步優化</strong>程式碼的方式撰寫，就是會先寫出一個新手好理解的版本，然後再進一步做優化修改部分程式。為了避免單篇文章過長，每個版本都會以單一篇文章撰寫。</p>
+<p>預計在第三版中會改寫成 MVC 架構，如果你不了解什麼是 MVC 架構也沒關係，我會在下篇文章中說明的。</p>
+<p>每個版本中，也都會使用 Talend API Tester 做測試，這個工具可以直接在 Chrome 線上應用程式商店取得，此篇文章也會介紹使用方式。</p>
+<p>那我們開始吧！</p>
+<p><strong>最下方有此篇完整的程式碼：</strong> <em><a href="#all_code">全部的程式碼連結</a></em></p>
+<h1 id="準備工具／軟體"><a href="#準備工具／軟體" class="headerlink" title="準備工具／軟體"></a>準備工具／軟體</h1><ul>
+<li>Visual Studio code</li>
+<li>Talend API Tester</li>
+<li><a target="_blank" rel="noopener" href="https://sqlitebrowser.org/dl/">DB Browser for SQLite</a></li>
+</ul>
+<h1 id="什麼是-REST-風格"><a href="#什麼是-REST-風格" class="headerlink" title="什麼是 REST 風格"></a>什麼是 REST 風格</h1><p>這邊只會大概說明 RESTful API 的風格，更詳細的介紹可以參考 <a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-tw/azure/architecture/best-practices/api-design">微軟的 RESTful Web API 設計教學</a></p>
+<h2 id="1-使用-http-method-表示動作"><a href="#1-使用-http-method-表示動作" class="headerlink" title="1. 使用 http method 表示動作"></a>1. 使用 http method 表示動作</h2><table>
+<thead>
+<tr>
+<th align="center">Http method</th>
+<th align="center">對應的資料庫操作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">POST</td>
+<td align="center">Create</td>
+</tr>
+<tr>
+<td align="center">GET</td>
+<td align="center">Read</td>
+</tr>
+<tr>
+<td align="center">PUT</td>
+<td align="center">Update</td>
+</tr>
+<tr>
+<td align="center">DELETE</td>
+<td align="center">Delete</td>
+</tr>
+</tbody></table>
+<h2 id="2-使用-url-路徑描述資源之間的階層關係"><a href="#2-使用-url-路徑描述資源之間的階層關係" class="headerlink" title="2. 使用 url 路徑描述資源之間的階層關係"></a>2. 使用 url 路徑描述資源之間的階層關係</h2><p><code>http://127.0.0.1:5000/residents</code>，取得所有住戶資訊</p>
+<p><code>http://127.0.0.1:5000/residents/AF59982T</code>，取得 <code>residents rfid</code> 為 <code>AF59982T</code> 的住戶資訊</p>
+<h2 id="3-Response-Body-返回-JSON-或是-XML-格式"><a href="#3-Response-Body-返回-JSON-或是-XML-格式" class="headerlink" title="3. Response Body 返回 JSON 或是 XML 格式"></a>3. Response Body 返回 JSON 或是 XML 格式</h2><p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/08.png?alt=media&token=6805c9ab-c5d0-4c85-9a68-d2c838a22084" alt="Response Body 返回 JSON 格式"></p>
+<h1 id="建立-app-py"><a href="#建立-app-py" class="headerlink" title="建立 app.py"></a>建立 app.py</h1><p>請開啟 VScode 或任何你喜歡的編輯器，建立 app.py 的 python 檔案，第一個版本中，我們會先將所有的 API 程式碼都先寫在 app.py 這份檔案中，這樣可以讓程式碼不會過於分散，幫助新手理解閱讀程式碼。</p>
+<h1 id="先匯入所需要的-module"><a href="#先匯入所需要的-module" class="headerlink" title="先匯入所需要的 module"></a>先匯入所需要的 module</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, jsonify, request, abort</span><br><span class="line"><span class="keyword">import</span> sqlite3</span><br></pre></td></tr></table></figure>
+
+<p>如果尚未安裝 flask，可以在終端機輸入下方的指令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install Flask</span><br></pre></td></tr></table></figure>
+
+<p>請留意最新版本的 flask 3.0.3，需要 Python 版本 &gt;&#x3D;3.8</p>
+<p>而 sqlite3 內建在 Python 的標準函式庫中，不需要另外安裝喔</p>
+<h1 id="將-Flask-實例化-Instance"><a href="#將-Flask-實例化-Instance" class="headerlink" title="將 Flask 實例化 (Instance)"></a>將 Flask 實例化 (Instance)</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">app = Flask(__name__)</span><br></pre></td></tr></table></figure>
+
+<p>關於這行程式碼，如果你對於 Python 的 class 不熟悉，或沒有其他程式語言的物件導向知識，可能很難理解，可以略過，並不會影響後續的閱讀。</p>
+<p><code>__name__</code> 表示當前 module 的名稱，如果在此份 app.py 中執行它時，<code>__name__</code> 會被設置為 <code>&quot;__main__&quot;</code></p>
+<p>如果 app.py 被當成 module import 進其他 python 程式中，<code>__name__</code> 會是該 module 的名稱。更白話的說，就是如果在別的檔案 <code>import</code> 這個 app.py，並且執行的話，此時，app 的 <code>__name__</code> 就是 app 這個名稱。</p>
+<p>將 <code>__name__</code> 傳遞給 Flask class，Flask 可以根據此名稱來決定依些重要的設定，比如路徑查找、static 資料夾中的文件、templates 資料夾中的文件。</p>
+<p>總之，<code>app = Flask(__name__)</code> 這行程式碼是使用 Flask 框架，創建 Web API 的第一步，後續的 route、錯誤處理和其他功能，都會基於此 app 實例 (Instance) 進行設定和執行。</p>
+<h2 id="補充說明"><a href="#補充說明" class="headerlink" title="補充說明"></a>補充說明</h2><p>關於上述的<strong>static 資料夾中的文件、templates 資料夾中的文件</strong>，如果想使用 Flask 的 Jinja2 模板引擎，會將 <code>index.html</code> 放在 <code>templates</code> 的資料夾中，而 <code>script.js</code> 則放在 <code>static</code> 資料夾中，這部分並不會在這個系列作說明。</p>
+<p>檔案架構如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">your_project/</span><br><span class="line">│</span><br><span class="line">├── app.py</span><br><span class="line">├── templates/</span><br><span class="line">│   └── index.html</span><br><span class="line">└── static/</span><br><span class="line">    └── script.js</span><br></pre></td></tr></table></figure>
+
+<p><strong>需要注意的是，使用 Jinja2 模板引擎，技術上並不算是完全的前後端分離（Front-End and Back-End Separation）</strong></p>
+<h1 id="初始化資料庫-Initialize-database"><a href="#初始化資料庫-Initialize-database" class="headerlink" title="初始化資料庫(Initialize database)"></a>初始化資料庫(Initialize database)</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">init_db</span>():</span><br><span class="line">    conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># CREATE TABLE residents</span></span><br><span class="line">    cursor.execute(<span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        CREATE TABLE IF NOT EXISTS residents (</span></span><br><span class="line"><span class="string">            rfid TEXT PRIMARY KEY,</span></span><br><span class="line"><span class="string">            name TEXT NOT NULL,</span></span><br><span class="line"><span class="string">            gender CHAR(1) NOT NULL</span></span><br><span class="line"><span class="string">        )</span></span><br><span class="line"><span class="string">    &#x27;&#x27;&#x27;</span>)</span><br><span class="line">    conn.commit()</span><br><span class="line">    conn.close()</span><br><span class="line"></span><br><span class="line">init_db()</span><br></pre></td></tr></table></figure>
+
+<p>為了後續方便重複使用，或在單元測試時使用，我們將資料庫初始化的過程寫成函式，之後可以簡單的呼叫 <code>init_db()</code>，而不需要重複寫相同的程式碼，也提高了維護性。</p>
+<p><code>conn = sqlite3.connect(&#39;residents.db&#39;)</code> 創建一個 database，此 database 會儲存在硬碟中。</p>
+<p>如果將上述的程式碼改成 <code>conn = sqlite3.connect(&quot;:memory:&quot;)</code>，則此 database 會儲存 RAM 中，程式執行完就刪除，一般用來做一些簡單的測試使用。</p>
+<p><code>&#39;residents.db&#39;</code> 是準備要創建，並且連接的資料庫名稱，如果此資料庫不存在，sqlite3 會在本資料夾自動創建一個。</p>
+<p><code>cursor = conn.cursor()</code> <code>conn.cursor()</code> 會 <code>return</code> 一個 <code>cursor</code> object 用來操作資料庫。</p>
+<p><code>cursor.execute(&quot;&quot;&quot; 放入要執行的 SQL 語法 &quot;&quot;&quot;)</code> 執行 SQL 語法使用，此段程式碼會創建一個 TABLE 名稱為 people</p>
+<p>可以在 SQL 語法中加上 <code>IF NOT EXISTS</code> 這樣可以避免重複創建，出現錯誤資訊。</p>
+<p><code>conn.commit()</code> 每次連接資料庫，進行 SQL 操作後，一定要執行 <code>commit()</code> 過後才能存進資料庫，不然不會儲存喔！</p>
+<p><code>conn.close()</code> 關閉資料庫連線。</p>
+<h1 id="創建住戶資料-Create"><a href="#創建住戶資料-Create" class="headerlink" title="創建住戶資料 (Create)"></a>創建住戶資料 (Create)</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 創建住戶資料</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/residents&#x27;</span>, methods=[<span class="string">&#x27;POST&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">create_resident</span>():</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> request.json <span class="keyword">or</span> <span class="keyword">not</span> <span class="string">&#x27;rfid&#x27;</span> <span class="keyword">in</span> request.json:</span><br><span class="line">        abort(<span class="number">400</span>)  <span class="comment"># HTTP 400: Bad request</span></span><br><span class="line"></span><br><span class="line">    data = request.get_json()</span><br><span class="line">    rfid = data[<span class="string">&#x27;rfid&#x27;</span>]</span><br><span class="line">    name = data[<span class="string">&#x27;name&#x27;</span>]</span><br><span class="line">    gender = data[<span class="string">&#x27;gender&#x27;</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">        cursor = conn.cursor()</span><br><span class="line">        cursor.execute(</span><br><span class="line">            <span class="string">&#x27;INSERT INTO residents (rfid, name, gender) VALUES (?, ?, ?)&#x27;</span>, (rfid, name, gender))</span><br><span class="line">        conn.commit()  <span class="comment"># 別忘了執行 commit() 過後才能存進資料庫</span></span><br><span class="line">    <span class="keyword">except</span> sqlite3.IntegrityError:  <span class="comment"># 如果重複插入相同的 RFID</span></span><br><span class="line">        abort(<span class="number">409</span>)  <span class="comment"># Conflict</span></span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        conn.close()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Return 201 Created</span></span><br><span class="line">    <span class="keyword">return</span> jsonify(&#123;<span class="string">&#x27;message&#x27;</span>: <span class="string">&#x27;Resident created successfully&#x27;</span>&#125;), <span class="number">201</span></span><br></pre></td></tr></table></figure>
+
+<p><code>@app.route(&#39;/residents&#39;, methods=[&#39;POST&#39;])</code> 路由(route)的定義方式</p>
+<p>說明此 route 只接受 <code>POST</code> 請求，在本地端如果在網址列輸入 <code>http://127.0.0.1:5000/residents</code> 並在 Requset Body 的部分提供要新增住戶的 JSON 資料，該 route 就會自動執行 <code>create_resident()</code></p>
+<p>這部分，在說明完創建住戶資料的程式碼後，會使用 API Tester 來測試，建立一個住戶資料，你將會明白如何在 Requset Body 提供 JSON 格式的資料。</p>
+<p><code>@app.route</code> 是 Flask 用來定義 <code>route</code> 的裝飾器(decorator)，表示當使用者發送 <code>POST</code> 請求到 <code>/residents URL</code> 時，此 <code>route</code> 會被觸發。</p>
+<p>關於 Python 的裝飾器(decorator)，如果要說明篇幅會比較長，之後會寫另一篇文章做更詳細的介紹。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> request.json <span class="keyword">or</span> <span class="keyword">not</span> <span class="string">&#x27;rfid&#x27;</span> <span class="keyword">in</span> request.json:</span><br><span class="line">    abort(<span class="number">400</span>)</span><br></pre></td></tr></table></figure>
+
+<p>檢查 Requset Body 中是否提供 JSON 數據資料，以及所提供的資料是否有效，這段程式碼可以避免程式接收不完整的請求，或非 JSON 格式的數據。</p>
+<p>如果 JSON 中沒有提供 <code>rfid</code> 的欄位、或 JSON 格式錯誤，則會觸發 <code>abort(400)</code>，return HTTP 400 錯誤，表示請求不正確（”Bad Request”）</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">data = request.get_json()</span><br><span class="line">rfid = data[<span class="string">&#x27;rfid&#x27;</span>]</span><br><span class="line">name = data[<span class="string">&#x27;name&#x27;</span>]</span><br><span class="line">gender = data[<span class="string">&#x27;gender&#x27;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>request.get_json()</code> 從 Requset Body 中提取 JSON 數據資料，並儲存在變數 <code>data</code> 中&#96;。</p>
+<p>如果你把 <code>data</code> print 出來後，會是一個 python dict<br><code>&#123;&#39;rfid&#39;: &#39;CD16281D&#39;, &#39;name&#39;: &#39;Alice&#39;, &#39;gender&#39;: &#39;F&#39;&#125;</code></p>
+<p>所以，如果熟悉 Python 的字典(dict)，你應該明白後面三行程式碼了，只是分別提取 <code>data</code> 中的資料，儲存到 <code>rfid</code>、<code>name</code>、<code>gender</code> 三個變數中，方便寫入資料庫。</p>
+<p><code>try:</code> 的區塊只是連接資料庫 <code>&#39;residents.db&#39;</code>, 並且進行資料庫寫入操作，這邊就不再重複說明囉！</p>
+<p><strong>需要注意的是，建議 SQL 語法要使用參數的寫法，可以避免 SQL injection 喔！</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">except</span> sqlite3.IntegrityError:</span><br><span class="line">    abort(<span class="number">409</span>)  <span class="comment"># Conflict</span></span><br></pre></td></tr></table></figure>
+
+<p>如果在 INSRET 時發生 <code>sqlite3.IntegrityError</code> 通常表示主鍵(primary key) 的 <code>rfid</code> 發生重複，就會發送 HTTP 409 錯誤(“Conflict”)</p>
+<p>HTTP 409: 表示因為請求存在衝突無法處理該請求。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">finally</span>:</span><br><span class="line">    conn.close()</span><br></pre></td></tr></table></figure>
+
+<p>無論是否發生異常，都會執行 <code>finally:</code> 區塊來關閉資料庫連接，確保資源被正確釋放。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> jsonify(&#123;<span class="string">&#x27;message&#x27;</span>: <span class="string">&#x27;Resident created successfully&#x27;</span>&#125;), <span class="number">201</span></span><br></pre></td></tr></table></figure>
+
+<p>如果住戶資料插入成功，則會 return 一個包含 JSON 的訊息在 Response Body 中，並發送 HTTP 狀態碼 201（”Created”），表示資源已成功創建。</p>
+<h1 id="在最後一行加上-app-run-debug-True"><a href="#在最後一行加上-app-run-debug-True" class="headerlink" title="在最後一行加上 app.run(debug=True)"></a>在最後一行加上 <code>app.run(debug=True)</code></h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    app.run(debug=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<p><code>if __name__ == &#39;__main__&#39;:</code> 以目前簡單的程式來說，其實不加這行程式碼也可以喔，最後一行只要寫上 <code>app.run(debug=True)</code> 就能啟動 Flask 伺服器，預設情況下會在 <code>http://127.0.0.1:5000/</code> 上運行。</p>
+<p>而 <code>if __name__ == &#39;__main__&#39;:</code> 的作用是什麼呢？</p>
+<p>如果直接執行目前的 <code>app.py</code> 這個檔案，那麼 <code>__name__</code> 變數就會自動設定為 <code>&#39;__main__&#39;</code></p>
+<p>反之，如果 <code>app.py</code> 是被其他程式視為模組(module) <code>import</code> 的話， <code>__name__</code> 變數就會設定成模組的名稱 <code>app</code>，而不是 <code>&#39;__main__&#39;</code></p>
+<p>但為什麼要這麼麻煩呢？這種檢查的目的是為了區分，直接運行程式，和作為模組被 <code>import</code> 的情況，防止某些程式不必要地在 <code>import</code> 時運行。</p>
+<p>也就是如果加上 <code>if __name__ == &#39;__main__&#39;:</code> 這行程式，就只有在直接執行 <code>app.py</code> 時，<code>app.run(debug=True)</code> 才能起作用；如果 <code>app.py</code> 是被 <code>import</code> 的情況下，<code>app.run()</code> 就不會被執行。</p>
+<p><code>debug=True</code> 在運行 <code>app.run()</code> 如果加上此參數，Flask 會啟用<strong>除錯模式</strong>，每當你修改程式碼時，Flask 伺服器會自動重新啟動，無需手動重啟伺服器，這對於開發階段非常有幫助！</p>
+<p>另一個好處是，當程式碼出現錯誤時，瀏覽器會顯示詳細的錯誤信息和追蹤堆疊，方便除錯。</p>
+<h1 id="執行-app-py"><a href="#執行-app-py" class="headerlink" title="執行 app.py"></a>執行 <code>app.py</code></h1><p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/00.png?alt=media&token=b61f59ae-2cb9-4fb5-82f4-e5ead9299c97" alt="執行app.py"></p>
+<p>按下圖中 1. 的 Run Code 執行 app.py 後，你可以發現左方欄位會新增一個 <code>residents.db</code> 的資料庫檔案，不過我們並不能直接將它開啟</p>
+<p>如果希望能有視覺化操作介面，你可以開啟本篇開頭所推薦的工具 DB Brower for SQLite，如下圖所示，開啟資料庫即可。</p>
+<p>在下方可以看到有一個 <code>residents</code>的資料表，這就是剛剛執行 <code>init_db()</code> 所建立的。</p>
+<p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/01.png?alt=media&token=6f712e52-4140-45d2-8b52-a5259bbea18a" alt="開啟 DB Brower"></p>
+<h1 id="在-API-Tester-測試創建住戶的-route"><a href="#在-API-Tester-測試創建住戶的-route" class="headerlink" title="在 API Tester 測試創建住戶的 route"></a>在 API Tester 測試創建住戶的 route</h1><p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/02.png?alt=media&token=cdb9d4c9-7cd9-4bd0-ad21-613634ec78d8" alt="API Tester: 發送 Http request"></p>
+<ol>
+<li><p>先在 MY DRIVE 的地方建立好資料夾，建立第一個 Request</p>
+</li>
+<li><p>改名成 <code>create_resident</code> 儲存後，方便後續測試使用。</p>
+</li>
+<li><p>HTTP METHOD 改成 <code>POST</code></p>
+</li>
+<li><p>鍵入預設本地域名 <code>http://127.0.0.1:5000</code> 並加上 <code>/residents</code>，我們要執行測試剛剛所創立的 <code>@app.route(&#39;/residents&#39;, methods=[&#39;POST&#39;])</code></p>
+</li>
+<li><p>區塊 5 就是前面所提到的 Request Body，我們會在這邊放置要傳送的 JSON 資訊，請輸入一組用戶的資訊，你可以提供下方的範例，記得發送前一定要先執行 <code>app.py</code> 喔！</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">&quot;rfid&quot;: &quot;GF12981F&quot;,</span><br><span class="line">&quot;name&quot;: &quot;Ben&quot;,</span><br><span class="line">&quot;gender&quot;: &quot;M&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>按下 Send 鍵：發送 Http request</p>
+</li>
+</ol>
+<p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/03.png?alt=media&token=bf13f857-7bac-4b57-9fcb-3ef7f7a86580" alt="API Tester: 接收 Http Response"></p>
+<p>發送一個 Http request 後，頁面下方就會立即出現一個 <code>Response 201 CREATED</code> 表示發送成功！</p>
+<p>並可以在 Response Body 看到回傳了一個 JSON 資訊 <code>&#123;&#39;message&#39;: &#39;Resident created successfully&#39;&#125;</code> 這段其實就是當初我們程式碼中所寫的，如果發送成功後，所要回傳的資訊。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Return 201 Created</span></span><br><span class="line"><span class="keyword">return</span> jsonify(&#123;<span class="string">&#x27;message&#x27;</span>: <span class="string">&#x27;Resident created successfully&#x27;</span>&#125;), <span class="number">201</span></span><br></pre></td></tr></table></figure>
+
+<p>接下來，再開啟 DB Browser，選擇<strong>開啟資料庫</strong>，就可以看到剛剛所新增的住戶資訊囉！</p>
+<p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/04.png?alt=media&token=dcc855cd-f9e9-49e0-914e-b9fa89af53b3" alt="DB Browser: 查看新增住戶"></p>
+<h1 id="Http-Request-錯誤請求測試"><a href="#Http-Request-錯誤請求測試" class="headerlink" title="Http Request 錯誤請求測試"></a>Http Request 錯誤請求測試</h1><p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/05.png?alt=media&token=6d509ff1-def0-4ad6-8a29-6d401d9e9299" alt="409 CONFLICT"></p>
+<p>如圖，再新增一筆 <code>rfid</code> 欄位相同的住戶資訊，就會出現 <code>409 CONFLICT</code>，表示因為請求存在衝突無法處理該請求。</p>
+<p>因為我們有在程式碼寫下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">except</span> sqlite3.IntegrityError:</span><br><span class="line">    abort(<span class="number">409</span>)  <span class="comment"># Conflict</span></span><br></pre></td></tr></table></figure>
+
+<p>同樣的，你可以嘗試新增住戶時，缺失 <code>rfid</code> 欄位，就會出現 <code>400 BAD REQUEST</code> 的 Http Response</p>
+<p>因為我們有在程式碼寫下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> request.json <span class="keyword">or</span> <span class="keyword">not</span> <span class="string">&#x27;rfid&#x27;</span> <span class="keyword">in</span> request.json:</span><br><span class="line">    abort(<span class="number">400</span>)  <span class="comment"># HTTP 400: Bad request</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/06.png?alt=media&token=9f420d2b-e142-4a6c-b4ac-703674d9ef47" alt="400 BAD REQUEST"></p>
+<h1 id="在新增兩筆住戶資訊"><a href="#在新增兩筆住戶資訊" class="headerlink" title="在新增兩筆住戶資訊"></a>在新增兩筆住戶資訊</h1><p>接下來，我們要繼續寫下一個 API，<strong>讀取所有住戶資訊</strong></p>
+<p>但在開始之前，你可以先在新增兩筆住戶資訊，方便後續操作使用，不過以目前這個 API，只能一筆一筆輸入喔！</p>
+<p>兩筆住戶範例如下：<em>請重複上述在 API Tester 的操作</em></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;rfid&quot;: &quot;GF12981F&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Ben&quot;,</span><br><span class="line">  &quot;gender&quot;: &quot;M&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;rfid&quot;: &quot;AF59982T&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Kim&quot;,</span><br><span class="line">  &quot;gender&quot;: &quot;M&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="讀取所有住戶資訊-Read"><a href="#讀取所有住戶資訊-Read" class="headerlink" title="讀取所有住戶資訊 (Read)"></a>讀取所有住戶資訊 (Read)</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 讀取所有住戶資訊</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/residents&#x27;</span>, methods=[<span class="string">&#x27;GET&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_residents</span>():</span><br><span class="line">    conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(<span class="string">&#x27;SELECT * FROM residents&#x27;</span>)</span><br><span class="line">    rows = cursor.fetchall()</span><br><span class="line">    conn.close()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 如果把目前的 rows print 出來會長這樣，是一個 list of tuples</span></span><br><span class="line">    <span class="comment"># rows = [(&#x27;CD16281D&#x27;, &#x27;Alice&#x27;, &#x27;F&#x27;), (&#x27;AF59982T&#x27;, &#x27;Kim&#x27;, &#x27;M&#x27;), (&#x27;GF12981F&#x27;, &#x27;Ben&#x27;, &#x27;M&#x27;)]</span></span><br><span class="line"></span><br><span class="line">    residents = [&#123;<span class="string">&#x27;rfid&#x27;</span>: row[<span class="number">0</span>], <span class="string">&#x27;name&#x27;</span>: row[<span class="number">1</span>], <span class="string">&#x27;gender&#x27;</span>: row[<span class="number">2</span>]&#125; <span class="keyword">for</span> row <span class="keyword">in</span> rows]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> jsonify(residents), <span class="number">200</span></span><br></pre></td></tr></table></figure>
+
+<p>接下來，如果有遇到重複的程式碼，我就不會特別說明喔！篇幅有點長了 XD</p>
+<p><code>rows = cursor.fetchall()</code> 還記得前面說過，<code>cursor</code> 這個變數，儲存了一個 cursor object，可以用來操作資料庫嗎？</p>
+<p>比如，我們可以使用 <code>cursor.execute()</code> 來執行 SQL 指令，進行 CRUD 等操作。這裡是執行了 <code>&#39;SELECT * FROM residents&#39;</code> 查詢<code>table residents</code> 中的所有資料，而查詢結果會暫存在 <code>cursor</code> 這個物件中。</p>
+<p>當使用 <code>fetchall()</code> 的方法時，可以一次性取得所有查詢結果。</p>
+<p>我們將取得的查詢結果存放在 <code>rows</code> 變數中，如果你將 <code>rows</code> <code>print()</code> 出來，會是一個 list of tuples</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rows = [(<span class="string">&#x27;CD16281D&#x27;</span>, <span class="string">&#x27;Alice&#x27;</span>, <span class="string">&#x27;F&#x27;</span>), (<span class="string">&#x27;AF59982T&#x27;</span>, <span class="string">&#x27;Kim&#x27;</span>, <span class="string">&#x27;M&#x27;</span>), (<span class="string">&#x27;GF12981F&#x27;</span>, <span class="string">&#x27;Ben&#x27;</span>, <span class="string">&#x27;M&#x27;</span>)]</span><br></pre></td></tr></table></figure>
+
+<p>再來，透過 Python 的 <code>List Comprehension</code> 寫法，可以很簡潔用一行程式的將每個住戶用 dict 儲存，並存放在 list 中</p>
+<p>意思是 <code>residents</code> 會是一個 list of dicts</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># list of dicts</span></span><br><span class="line">[&#123;<span class="string">&#x27;rfid&#x27;</span>: <span class="string">&#x27;CD16281D&#x27;</span>, <span class="string">&#x27;name&#x27;</span>: <span class="string">&#x27;Alice&#x27;</span>, <span class="string">&#x27;gender&#x27;</span>: <span class="string">&#x27;F&#x27;</span>&#125;,</span><br><span class="line"> &#123;<span class="string">&#x27;rfid&#x27;</span>: <span class="string">&#x27;AF59982T&#x27;</span>, <span class="string">&#x27;name&#x27;</span>: <span class="string">&#x27;Kim&#x27;</span>, <span class="string">&#x27;gender&#x27;</span>: <span class="string">&#x27;M&#x27;</span>&#125;,</span><br><span class="line"> &#123;<span class="string">&#x27;rfid&#x27;</span>: <span class="string">&#x27;GF12981F&#x27;</span>, <span class="string">&#x27;name&#x27;</span>: <span class="string">&#x27;Ben&#x27;</span>, <span class="string">&#x27;gender&#x27;</span>: <span class="string">&#x27;M&#x27;</span>&#125;]</span><br></pre></td></tr></table></figure>
+
+<p>以 <strong>鍵值(Key - value)</strong> 的形式，儲存每個住戶的資訊，如果你有實作了之前的練習，應該可以看出這個形式跟 JSON 格式根本就很像，這也是為什麼我們要做這個資料類型轉換的原因。</p>
+<h2 id="補充說明-1"><a href="#補充說明-1" class="headerlink" title="補充說明"></a>補充說明</h2><p>如果對於 <code>Comprehension</code> 不是很熟悉，可以參考 <a target="_blank" rel="noopener" href="https://www.w3schools.com/python/python_lists_comprehension.asp">w3schools</a> 的教學，把此頁的範例實作過一次，應該就能比較理解囉！</p>
+<p><code>return jsonify(residents), 200</code> <code>jsonify</code> 是 Flask 的一個函式，用來將 Python 資料結構轉換為 JSON 格式。</p>
+<p>上述 <code>residents</code> 一個 list of dicts 的資料結構，經過 <code>jsonify(residents)</code> 就能轉換成 JSON 格式。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// JSON</span></span><br><span class="line"><span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span><span class="attr">&quot;rfid&quot;</span><span class="punctuation">:</span> <span class="string">&quot;AF56981F&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Kim&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;gender&quot;</span><span class="punctuation">:</span> <span class="string">&quot;M&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span><span class="attr">&quot;rfid&quot;</span><span class="punctuation">:</span> <span class="string">&quot;GF12981F&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Ben&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;gender&quot;</span><span class="punctuation">:</span> <span class="string">&quot;M&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span><span class="attr">&quot;rfid&quot;</span><span class="punctuation">:</span> <span class="string">&quot;CD16281D&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Alice&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;gender&quot;</span><span class="punctuation">:</span> <span class="string">&quot;F&quot;</span><span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<p>Flask <code>route</code> 會 <code>return</code> 一個 tuple <code>(jsonify(residents), 200)</code>，200 是 HTTP 狀態碼：表示請求成功！</p>
+<p>請求發送後，Response Body 就會以 JSON 的格式，顯示住戶資訊。</p>
+<h1 id="在-API-Tester-測試查詢所有住戶的-route"><a href="#在-API-Tester-測試查詢所有住戶的-route" class="headerlink" title="在 API Tester 測試查詢所有住戶的 route"></a>在 API Tester 測試查詢所有住戶的 route</h1><p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/07.png?alt=media&token=94aef08e-4eef-4cef-80dc-d6cca00e18d3" alt="在 API Tester 測試查詢所有住戶的 route"></p>
+<ol>
+<li><p>新增一個 Request 頁面</p>
+</li>
+<li><p>命名為 <code>get_residents</code></p>
+</li>
+<li><p><code>HTTP METHOD</code> 設定成 <code>GET</code></p>
+</li>
+<li><p>鍵入預設本地域名 <code>http://127.0.0.1:5000</code> 並加上 <code>/residents</code>，我們要執行測試剛剛所創建的 <code>@app.route(&#39;/residents&#39;, methods=[&#39;GET&#39;])</code></p>
+</li>
+<li><p>按 send 鈕，發送一個 Http Request</p>
+</li>
+</ol>
+<p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/08.png?alt=media&token=6805c9ab-c5d0-4c85-9a68-d2c838a22084" alt="Http Response"></p>
+<p>按 send 鈕，如果沒出錯，應該就會接收到一個 Http Response，Http 狀態碼為 <code>200 OK</code></p>
+<p>Response Body 內，也會取得一個 JSON 資訊，是全部住戶的資訊。</p>
+<h1 id="讀取單一住戶資訊-Read"><a href="#讀取單一住戶資訊-Read" class="headerlink" title="讀取單一住戶資訊 (Read)"></a>讀取單一住戶資訊 (Read)</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 讀取單一住戶</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/residents/&lt;rfid&gt;&#x27;</span>, methods=[<span class="string">&#x27;GET&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_resident</span>(<span class="params">rfid</span>):</span><br><span class="line">    conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(<span class="string">&#x27;SELECT * FROM residents WHERE rfid = ?&#x27;</span>, (rfid,))</span><br><span class="line">    row = cursor.fetchone()</span><br><span class="line">    <span class="comment"># row = (&#x27;CD16281D&#x27;, &#x27;Alice&#x27;, &#x27;F&#x27;) is a tuple</span></span><br><span class="line"></span><br><span class="line">    conn.close()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> row <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        abort(<span class="number">404</span>)  <span class="comment"># Not found if resident doesn&#x27;t exist</span></span><br><span class="line"></span><br><span class="line">    resident = &#123;<span class="string">&#x27;rfid&#x27;</span>: row[<span class="number">0</span>], <span class="string">&#x27;name&#x27;</span>: row[<span class="number">1</span>], <span class="string">&#x27;gender&#x27;</span>: row[<span class="number">2</span>]&#125;</span><br><span class="line">    <span class="keyword">return</span> jsonify(resident), <span class="number">200</span></span><br></pre></td></tr></table></figure>
+
+<p><code>@app.route(&#39;/residents/&lt;rfid&gt;&#39;, methods=[&#39;GET&#39;])</code> 說明此 route 只接受 <code>GET</code> 請求，在本地端如果在網址列輸入 <code>http://127.0.0.1:5000/residents/&lt;rfid&gt;</code>，該 route 就會自動執行 <code>get_resident(rfid)</code></p>
+<p>網址的 <code>&lt;rfid&gt;</code> 部分，是放入所要查詢住戶的 rfid 碼，如：<code>http://127.0.0.1:5000/residents/CD16281D</code></p>
+<p>這裡選擇以 <code>rfid</code> 來查詢，只是因為 <code>table</code> 資料表那邊，是設 <code>rfid</code> 為主鍵(foreign key)，查詢起來比較簡便而已。</p>
+<p>預計下一版會新增一個以關鍵字查詢的 API，可以期待一下！</p>
+<p><code>row = cursor.fetchone()</code> 因為只會取出一筆資訊，所以這裡的 row 變數，<code>print()</code> 出來後，是一個 tuple</p>
+<p><code>row = (&#39;CD16281D&#39;, &#39;Alice&#39;, &#39;F&#39;)</code></p>
+<p><code>fetchone()</code> 是 <code>cursor</code> 物件的一個方法(Method)，可以用來從查詢結果中 <code>return</code> 一筆紀錄，若無結果則 <code>return</code> <code>None</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> row <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">    abort(<span class="number">404</span>)</span><br></pre></td></tr></table></figure>
+
+<p>這段程式碼，表示如果 <code>row</code> 是 <code>None</code>，就是 <code>cursor.fetchone()</code> 取得的值是 <code>None</code>，查詢不到結果，則回傳 <code>http 狀態碼：404</code></p>
+<h1 id="在-API-Tester-測試取得單一住戶的-route"><a href="#在-API-Tester-測試取得單一住戶的-route" class="headerlink" title="在 API Tester 測試取得單一住戶的 route"></a>在 API Tester 測試取得單一住戶的 route</h1><p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/09.png?alt=media&token=5976f80b-6800-4ea8-b837-50d804ba0bf0" alt="在 API Tester 測試取得單一住戶的 route"></p>
+<ol>
+<li><p>新增一個 Request 頁面</p>
+</li>
+<li><p>命名為 <code>get_resident</code>，注意結尾沒有 s</p>
+</li>
+<li><p><code>HTTP METHOD</code> 設定成 <code>GET</code></p>
+</li>
+<li><p>鍵入預設本地域名 <code>http://127.0.0.1:5000</code> 並加上 <code>/residents/CD16281D</code>，我們要執行測試剛剛所創建的 <code>@app.route(&#39;/residents&#39;, methods=[&#39;GET&#39;])</code>，取得 <code>CD16281D</code> 的資料</p>
+</li>
+<li><p>按 send 鈕，發送一個 <code>Http Request</code></p>
+</li>
+</ol>
+<p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/10.png?alt=media&token=4faa61f3-1ffa-4e61-817d-4776e30e77e2" alt="Response Body"></p>
+<p>按 send 鈕，如果沒出錯，應該就會接收到一個 Http Response，Http 狀態碼為 <code>200 OK</code></p>
+<p>Response Body 內，也會取得一個 JSON 資訊，是 Alice 住戶的資訊。</p>
+<h1 id="更新住戶資訊-Update"><a href="#更新住戶資訊-Update" class="headerlink" title="更新住戶資訊 (Update)"></a>更新住戶資訊 (Update)</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 更新住戶資料</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/residents/&lt;rfid&gt;&#x27;</span>, methods=[<span class="string">&#x27;PUT&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">update_resident</span>(<span class="params">rfid</span>):</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> request.json:</span><br><span class="line">        abort(<span class="number">400</span>)  <span class="comment"># Bad request if the data is missing</span></span><br><span class="line"></span><br><span class="line">    name = request.json.get(<span class="string">&#x27;name&#x27;</span>)</span><br><span class="line">    gender = request.json.get(<span class="string">&#x27;gender&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(</span><br><span class="line">        <span class="string">&#x27;UPDATE residents SET name = ?, gender = ? WHERE rfid = ?&#x27;</span>, (name, gender, rfid))</span><br><span class="line">    conn.commit()</span><br><span class="line">    conn.close()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> cursor.rowcount == <span class="number">0</span>:  <span class="comment"># 沒有更新任何行表示資源不存在</span></span><br><span class="line">        abort(<span class="number">404</span>)  <span class="comment"># Not found</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> jsonify(&#123;<span class="string">&#x27;message&#x27;</span>: <span class="string">&#x27;Resident updated successfully&#x27;</span>&#125;), <span class="number">200</span></span><br></pre></td></tr></table></figure>
+
+<p><code>@app.route(&#39;/residents/&lt;rfid&gt;&#39;, methods=[&#39;PUT&#39;])</code> 說明此 route 只接受 <code>PUT</code> 請求，在本地端如果在網址列輸入 <code>http://127.0.0.1:5000/residents/&lt;rfid&gt;</code> 並在 Request Body 的部分提供要新增住戶的 JSON 資料，該 route 就會自動執行 <code>update_resident(rfid)</code></p>
+<p>這部分 Requset Body 不需要提供 <code>rfid</code> 欄位，但其他欄位不論要改哪一個都必須提供，因為我們的程式碼是會去更新除了 <code>rfid</code> 欄位的其他資訊，而 <code>rfid</code> 是主鍵(foreign key)，無法更改。</p>
+<p>比如想要更改目前資料庫中 <code>AF59982T</code> 的資訊，就在 Request Body 中寫：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Ray&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;gender&quot;</span><span class="punctuation">:</span> <span class="string">&quot;M&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>request.json</code> 其中 <code>request</code> 是 Flask 提供的全域變數，代表當前的 HTTP 請求物件。它包含了來自用戶端的請求數據，如： headers、表單資料、參數、JSON 資料等…</p>
+<p>request.json 是 <code>request</code> 物件的一個屬性(Attribute)，它會解析 Request Body 中的 JSON 資料，並以 Python dict 的形式 <code>return</code></p>
+<p>比如你 <code>print(request.json)</code> 將會得到 <code>&#123;&#39;name&#39;: &#39;Ray&#39;, &#39;gender&#39;: &#39;M&#39;&#125;</code> 資料類型為 Python dict</p>
+<p><code>name = request.json.get(&#39;name&#39;)</code> 而既然 <code>request.json</code> 是 Python dict，自然可以使用 <code>.get(key)</code> 來取得指定 <code>key</code> 的值。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> cursor.rowcount == <span class="number">0</span>:</span><br><span class="line">        abort(<span class="number">404</span>)</span><br></pre></td></tr></table></figure>
+
+<p><code>cursor.rowcount</code> 是 <code>cursor</code> 物件的屬性之一，會 <code>return</code> 最近一次執行的 SQL 指令所影響的行數，通常用來判斷一個操作是否改變了資料庫中的資料。</p>
+<p>如果 <code>cursor.rowcount == 0</code> 就表示沒有做任何更新，則回傳一個 HTTP 404 錯誤，表示要更新的 <code>rfid</code> 不存在。你可以更新一個不存在的 <code>rfid</code> 試試看喔！</p>
+<h1 id="在-API-Tester-測試更新住戶的-route"><a href="#在-API-Tester-測試更新住戶的-route" class="headerlink" title="在 API Tester 測試更新住戶的 route"></a>在 API Tester 測試更新住戶的 route</h1><p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/11.png?alt=media&token=cc3b4285-5b35-418a-99b9-b0ffe8850080" alt="在 API Tester 測試更新住戶的 route"></p>
+<ol>
+<li><p>新增一個 Request 頁面</p>
+</li>
+<li><p>命名為 <code>update_resident</code>，注意結尾沒有 s</p>
+</li>
+<li><p><code>HTTP METHOD</code> 設定成 <code>PUT</code></p>
+</li>
+<li><p>鍵入預設本地域名 <code>http://127.0.0.1:5000</code> 並加上 <code>/residents/AF59982T</code>，我們要執行測試剛剛所創建的 <code>@app.route(&#39;/residents&#39;, methods=[&#39;PUT&#39;])</code>，更新 <code>AF59982T</code> 的資料</p>
+</li>
+<li><p>在 Request Body 以 JSON 格式輸入要更新的資訊</p>
+</li>
+</ol>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Ray&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;gender&quot;</span><span class="punctuation">:</span> <span class="string">&quot;M&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li>按 send 鈕，發送一個 <code>Http Request</code></li>
+</ol>
+<h1 id="在-DB-Brower-查看更新結果"><a href="#在-DB-Brower-查看更新結果" class="headerlink" title="在 DB Brower 查看更新結果"></a>在 DB Brower 查看更新結果</h1><p><img src="https://firebasestorage.googleapis.com/v0/b/ccachun-blog.appspot.com/o/12.png?alt=media&token=56484f1d-4ded-4560-b85c-4eb0fc320557" alt="在 DB Brower 查看更新結果"></p>
+<h1 id="刪除住戶資訊"><a href="#刪除住戶資訊" class="headerlink" title="刪除住戶資訊"></a>刪除住戶資訊</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 刪除住戶</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/residents/&lt;rfid&gt;&#x27;</span>, methods=[<span class="string">&#x27;DELETE&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete_resident</span>(<span class="params">rfid</span>):</span><br><span class="line">    conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(<span class="string">&#x27;DELETE FROM residents WHERE rfid = ?&#x27;</span>, (rfid,))</span><br><span class="line">    conn.commit()</span><br><span class="line">    conn.close()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> cursor.rowcount == <span class="number">0</span>:</span><br><span class="line">        abort(<span class="number">404</span>)  <span class="comment"># Not found</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> jsonify(&#123;<span class="string">&#x27;message&#x27;</span>: <span class="string">&#x27;Resident deleted successfully&#x27;</span>&#125;), <span class="number">200</span></span><br></pre></td></tr></table></figure>
+
+<p><code>@app.route(&#39;/residents/&lt;rfid&gt;&#39;, methods=[&#39;DELETE&#39;])</code> 說明此 route 只接受 <code>DELETE</code> 請求，在本地端如果在網址列輸入 <code>http://127.0.0.1:5000/residents/&lt;rfid&gt;</code>，該 route 就會自動執行 <code>delete_resident(rfid)</code></p>
+<p>其他的程式碼都是之前所說明過，你可以到 API Tester 自行測試看看喔！記得 Http Method 的部分要改成 <code>DELETE</code></p>
+<H1 id="all_code">全部的程式碼</H1>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 檔案名稱為 app.py</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, jsonify, request, abort</span><br><span class="line"><span class="keyword">import</span> sqlite3</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">init_db</span>():</span><br><span class="line">    conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(<span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        CREATE TABLE IF NOT EXISTS residents (</span></span><br><span class="line"><span class="string">            rfid TEXT PRIMARY KEY,</span></span><br><span class="line"><span class="string">            name TEXT NOT NULL,</span></span><br><span class="line"><span class="string">            gender CHAR(1) NOT NULL</span></span><br><span class="line"><span class="string">        )</span></span><br><span class="line"><span class="string">    &#x27;&#x27;&#x27;</span>)</span><br><span class="line">    conn.commit()</span><br><span class="line">    conn.close()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">init_db()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 創建住戶資訊</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/residents&#x27;</span>, methods=[<span class="string">&#x27;POST&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">create_resident</span>():</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> request.json <span class="keyword">or</span> <span class="keyword">not</span> <span class="string">&#x27;rfid&#x27;</span> <span class="keyword">in</span> request.json:</span><br><span class="line">        abort(<span class="number">400</span>)  <span class="comment"># Bad request</span></span><br><span class="line">    data = request.get_json()</span><br><span class="line">    <span class="built_in">print</span>(data)</span><br><span class="line">    rfid = data[<span class="string">&#x27;rfid&#x27;</span>]</span><br><span class="line">    name = data[<span class="string">&#x27;name&#x27;</span>]</span><br><span class="line">    gender = data[<span class="string">&#x27;gender&#x27;</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">        cursor = conn.cursor()</span><br><span class="line">        cursor.execute(</span><br><span class="line">            <span class="string">&#x27;INSERT INTO residents (rfid, name, gender) VALUES (?, ?, ?)&#x27;</span>, (rfid, name, gender))</span><br><span class="line">        conn.commit()</span><br><span class="line">    <span class="keyword">except</span> sqlite3.IntegrityError:  <span class="comment"># 如果重複插入相同的 RFID</span></span><br><span class="line">        abort(<span class="number">409</span>)  <span class="comment"># Conflict</span></span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        conn.close()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Return 201 Created</span></span><br><span class="line">    <span class="keyword">return</span> jsonify(&#123;<span class="string">&#x27;message&#x27;</span>: <span class="string">&#x27;Resident created successfully&#x27;</span>&#125;), <span class="number">201</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 讀取所有住戶</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/residents&#x27;</span>, methods=[<span class="string">&#x27;GET&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_residents</span>():</span><br><span class="line">    conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(<span class="string">&#x27;SELECT * FROM residents&#x27;</span>)</span><br><span class="line">    rows = cursor.fetchall()</span><br><span class="line">    conn.close()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># rows = [(&#x27;CD16281D&#x27;, &#x27;Alice&#x27;, &#x27;F&#x27;), (&#x27;AF59982T&#x27;, &#x27;Kim&#x27;, &#x27;M&#x27;), (&#x27;GF12981F&#x27;, &#x27;Ben&#x27;, &#x27;M&#x27;)]</span></span><br><span class="line"></span><br><span class="line">    residents = [&#123;<span class="string">&#x27;rfid&#x27;</span>: row[<span class="number">0</span>], <span class="string">&#x27;name&#x27;</span>: row[<span class="number">1</span>], <span class="string">&#x27;gender&#x27;</span>: row[<span class="number">2</span>]&#125;</span><br><span class="line">                 <span class="keyword">for</span> row <span class="keyword">in</span> rows]</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(residents)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> jsonify(residents), <span class="number">200</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 讀取單一住戶</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/residents/&lt;rfid&gt;&#x27;</span>, methods=[<span class="string">&#x27;GET&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_resident</span>(<span class="params">rfid</span>):</span><br><span class="line">    conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(<span class="string">&#x27;SELECT * FROM residents WHERE rfid = ?&#x27;</span>, (rfid,))</span><br><span class="line">    row = cursor.fetchone()</span><br><span class="line">    conn.close()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> row <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        abort(<span class="number">404</span>)  <span class="comment"># Not found if resident doesn&#x27;t exist</span></span><br><span class="line"></span><br><span class="line">    resident = &#123;<span class="string">&#x27;rfid&#x27;</span>: row[<span class="number">0</span>], <span class="string">&#x27;name&#x27;</span>: row[<span class="number">1</span>], <span class="string">&#x27;gender&#x27;</span>: row[<span class="number">2</span>]&#125;</span><br><span class="line">    <span class="keyword">return</span> jsonify(resident), <span class="number">200</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新住戶資料</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/residents/&lt;rfid&gt;&#x27;</span>, methods=[<span class="string">&#x27;PUT&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">update_resident</span>(<span class="params">rfid</span>):</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> request.json:</span><br><span class="line">        abort(<span class="number">400</span>)  <span class="comment"># Bad request if the data is missing</span></span><br><span class="line"></span><br><span class="line">    name = request.json.get(<span class="string">&#x27;name&#x27;</span>)</span><br><span class="line">    gender = request.json.get(<span class="string">&#x27;gender&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(</span><br><span class="line">        <span class="string">&#x27;UPDATE residents SET name = ?, gender = ? WHERE rfid = ?&#x27;</span>, (name, gender, rfid))</span><br><span class="line">    conn.commit()</span><br><span class="line">    conn.close()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> cursor.rowcount == <span class="number">0</span>:  <span class="comment"># 沒有更新任何行表示資源不存在</span></span><br><span class="line">        abort(<span class="number">404</span>)  <span class="comment"># Not found</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> jsonify(&#123;<span class="string">&#x27;message&#x27;</span>: <span class="string">&#x27;Resident updated successfully&#x27;</span>&#125;), <span class="number">200</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 刪除住戶</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/residents/&lt;rfid&gt;&#x27;</span>, methods=[<span class="string">&#x27;DELETE&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete_resident</span>(<span class="params">rfid</span>):</span><br><span class="line">    conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(<span class="string">&#x27;DELETE FROM residents WHERE rfid = ?&#x27;</span>, (rfid,))</span><br><span class="line">    conn.commit()</span><br><span class="line">    conn.close()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> cursor.rowcount == <span class="number">0</span>:</span><br><span class="line">        abort(<span class="number">404</span>)  <span class="comment"># Not found</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> jsonify(&#123;<span class="string">&#x27;message&#x27;</span>: <span class="string">&#x27;Resident deleted successfully&#x27;</span>&#125;), <span class="number">200</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    app.run(debug=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<h1 id="可優化的部分"><a href="#可優化的部分" class="headerlink" title="可優化的部分"></a>可優化的部分</h1><p>細心的你或許可以發現，上述程式中，每個 <code>route</code> 都有兩行重複的程式碼</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">conn = sqlite3.connect(<span class="string">&#x27;residents.db&#x27;</span>)</span><br><span class="line">cursor = conn.cursor()</span><br></pre></td></tr></table></figure>
+
+<p>這部分，是下一個版本的優化項目之一，或許你可以先想想可以怎麼做。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>作者： </strong>小瑋
+  </li>
+  <li class="post-copyright-link">
+      <strong>文章連結：</strong>
+      <a href="https://ccachun.github.io/blog/2024/09/30/Python-Flask-SQLite-API/" title="Python 筆記：Flask + SQLite 後端 RESTful API 設計 (I)">https://ccachun.github.io/blog/2024/09/30/Python-Flask-SQLite-API/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版權聲明： </strong>本網誌所有文章除特別聲明外，均採用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 許可協議。轉載請註明出處！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/blog/tags/Python/" rel="tag"># Python</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/2024/07/20/Python-Floating-Point-Arithmetic-Issues-and-Limitations/" rel="prev" title="Python 筆記：浮點數 (Floating Point) 的運算原理、限制與極限，以及 round() 的解決方案">
+                  <i class="fa fa-angle-left"></i> Python 筆記：浮點數 (Floating Point) 的運算原理、限制與極限，以及 round() 的解決方案
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">小瑋</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 強力驅動
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="回到頂端">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/schemes/muse.js"></script><script src="/blog/js/sidebar.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/blog/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/blog/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
